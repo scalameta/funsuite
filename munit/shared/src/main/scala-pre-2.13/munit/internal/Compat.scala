@@ -7,4 +7,5 @@ object Compat {
     Iterator.continually("")
   def collectionClassName(i: Iterable[_]): String =
     i.stringPrefix
+  type Conversion[-A, +B] = A => B
 }

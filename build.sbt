@@ -223,8 +223,34 @@ lazy val munitScalacheckJVM = munitScalacheck.jvm
 lazy val munitScalacheckJS = munitScalacheck.js
 lazy val munitScalacheckNative = munitScalacheck.native
 
+lazy val munitHedgehog = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("munit-hedgehog"))
+  .dependsOn(munit)
+  .settings(
+    moduleName := "munit-hedgehog",
+    sharedSettings,
+    crossScalaVersions := List(scala213, scala212, scala211, dotty),
+    resolvers += "bintray-scala-hedgehog".at(
+      "https://dl.bintray.com/hedgehogqa/scala-hedgehog"
+    ),
+    libraryDependencies += ("qa.hedgehog" %%% "hedgehog-runner" % "97854199ef795a5dfba15478fd9abe66035ddea2")
+      .withDottyCompat(scalaVersion.value)
+  )
+  .jvmSettings(
+    skip in publish := customScalaJSVersion.isDefined
+  )
+  .nativeConfigure(sharedNativeConfigure)
+  .nativeSettings(
+    sharedNativeSettings,
+    skip in publish := customScalaJSVersion.isDefined
+  )
+  .jsSettings(sharedJSSettings)
+lazy val munitHedgehogJVM = munitHedgehog.jvm
+lazy val munitHedgehogJS = munitHedgehog.js
+lazy val munitHedgehogNative = munitHedgehog.native
+
 lazy val tests = crossProject(JSPlatform, JVMPlatform, NativePlatform)
-  .dependsOn(munit, munitScalacheck)
+  .dependsOn(munit, munitScalacheck, munitHedgehog)
   .enablePlugins(BuildInfoPlugin)
   .settings(
     sharedSettings,

@@ -7,4 +7,5 @@ object Compat {
     p.productElementNames
   def collectionClassName(i: Iterable[_]): String =
     i.asInstanceOf[{ def collectionClassName: String }].collectionClassName
+  type Conversion[-A, +B] = A => B
 }
