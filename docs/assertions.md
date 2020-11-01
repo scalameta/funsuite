@@ -101,23 +101,29 @@ assertEquals(
 Comparing two values of different types is a compile error.
 
 ```scala mdoc:fail
-assertEquals(1, "")
+assertEquals(Option("message"), "message")
 ```
 
-The "expected" value (second argument) must be a subtype of the "obtained" value
-(first argument).
-
-```scala mdoc
-assertEquals(Option(1), Some(1))
-```
-
-It's a compile error if you swap the order of the arguments.
+It's a compile error even if the comparison is true at runtime.
 
 ```scala mdoc:fail
-assertEquals(Some(1), Option(1))
+assertEquals(List(1), Vector(1))
 ```
 
-Use `assertEquals[Any, Any]` if you really want to compare two different types.
+```scala mdoc:fail
+assertEquals('a', 'a'.toInt)
+```
+
+It's OK to compare two types as long as one argument is a subtype of the other
+type.
+
+```scala mdoc
+assertEquals(Option(1), Some(1)) // OK
+assertEquals(Some(1), Option(1)) // OK
+```
+
+Use `assertEquals[Any, Any]` if you think it's OK to compare the two types at
+runtime.
 
 ```scala mdoc
 val right1: Either[String      , Int] = Right(42)

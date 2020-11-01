@@ -44,8 +44,8 @@ class LinesSuite extends FunSuite {
     }
   }
 
-  val line = Location.generate.line + 7
-  val endOfFileExpected =
+  val line: Int = Location.generate.line + 7
+  val endOfFileExpected: String =
     s"""|LinesSuite.scala:${line} issue-211
         |${line - 1}:  // hello!
         |${line}:  check("end-of-file", "issue-211", Location.generate, endOfFileExpected ) }

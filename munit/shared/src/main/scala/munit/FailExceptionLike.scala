@@ -13,7 +13,9 @@ package munit
  * `org.junit.ComparisonFailure` and this base trait. Internally, MUnit should
  * match against `FailExceptionLike[_]` instead of `munit.FailException` directly.
  */
-trait FailExceptionLike[T <: AssertionError] { self: AssertionError =>
+trait FailExceptionLike[T <: AssertionError] extends Serializable {
+  self: AssertionError =>
   def withMessage(message: String): T
   def location: Location
+  def isStackTracesEnabled: Boolean
 }

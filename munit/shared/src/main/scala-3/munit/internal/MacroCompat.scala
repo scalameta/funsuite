@@ -1,6 +1,7 @@
 package munit.internal
 
 import munit.Clue
+import munit.Compare
 import munit.Location
 import scala.quoted._
 

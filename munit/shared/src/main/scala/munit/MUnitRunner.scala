@@ -245,9 +245,15 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
       case NonFatal(ex) =>
         trimStackTrace(ex)
         val cause = ex match {
-          case e: ExecutionException
-              if "Boxed Exception" == e.getMessage() &&
-                e.getCause() != null =>
+          case e: ExecutionException if e.getCause() != null && {
+                e.getMessage() match {
+                  // NOTE(olafur): these exceptions appear when we await on
+                  // futures. We unwrap these exception in order to provide more
+                  // helpful error messages.
+                  case "Boxed Exception" | "Boxed Error" => true
+                  case _                                 => false
+                }
+              } =>
             e.getCause()
           case e => e
         }

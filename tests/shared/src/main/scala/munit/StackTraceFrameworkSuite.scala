@@ -28,9 +28,6 @@ object FullStackTraceFrameworkSuite
     extends BaseStackTraceFrameworkSuite(
       Array("-F"),
       """|at munit.Assertions:failComparison
-         |  at munit.Assertions:failComparison$
-         |  at munit.FunSuite:failComparison
-         |  at munit.Assertions$$anon$1:handle
          |==> failure munit.StackTraceFrameworkSuite.fail - /scala/munit/StackTraceFrameworkSuite.scala:5
          |4:  test("fail") {
          |5:    assertNoDiff("a", "b")
@@ -47,9 +44,7 @@ object FullStackTraceFrameworkSuite
 object SmallStackTraceFrameworkSuite
     extends BaseStackTraceFrameworkSuite(
       Array(),
-      """|at munit.FunSuite:assertNoDiff
-         |  at munit.StackTraceFrameworkSuite:$anonfun$new$1
-         |  at scala.runtime.java8.JFunction0$mcV$sp:apply
+      """|at munit.Assertions:failComparison
          |==> failure munit.StackTraceFrameworkSuite.fail - /scala/munit/StackTraceFrameworkSuite.scala:5
          |4:  test("fail") {
          |5:    assertNoDiff("a", "b")
