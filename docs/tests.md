@@ -90,7 +90,6 @@ you need to call `run()` to start the task execution. Override `munitTestValue`
 to add make sure that `LazyFuture.run()` gets called.
 
 ```scala mdoc
-import scala.concurrent.ExecutionContext.Implicits.global
 class TaskSuite extends munit.FunSuite {
   override def munitValueTransforms = super.munitValueTransforms ++ List(
     new ValueTransform("LazyFuture", {
@@ -318,32 +317,11 @@ smaller API.
 
 Extend the base class `munit.Suite` to implement a minimal test suite that
 includes no optional MUnit features. At its core, MUnit operates on a data
-structure `GenericTest[TestValue]` where the type parameter `TestValue`
-represents the return value of test bodies. This type parameter can be
-customized per-suite. In `munit.FunSuite`, the type parameter `TestValue` is
-defined as `Any` and `type Test = GenericTest[Any]`.
-
-Below is an example custom test suite with `type TestValue = Future[String]`.
-
-```scala
-class MyCustomSuite extends munit.Suite {
-  override type TestValue = Future[String]
-  override def munitTests() = List(
-    new Test(
-      "name",
-      // compile error if it's not a Future[String]
-      body = () => Future.successful("Hello world!"),
-      tags = Set.empty[Tag],
-      location = implicitly[Location]
-    )
-  )
-}
-```
+structure `Test`.
 
 Some use-cases where you may want to define a custom `munit.Suite`:
 
 - implement APIs that mimic testing libraries to simplify the migration to MUnit
-- design stricter APIs that don't use `Any`
 - design purely functional APIs with no publicly facing side-effects
 
 In application code, it's desirable to use strong types avoid mutable state.

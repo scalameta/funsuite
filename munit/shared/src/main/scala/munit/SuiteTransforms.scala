@@ -1,7 +1,7 @@
 package munit
 
-import scala.concurrent.Future
 import scala.util.control.NonFatal
+import scala.concurrent.Future
 
 trait SuiteTransforms { this: FunSuite =>
 
@@ -54,7 +54,7 @@ trait SuiteTransforms { this: FunSuite =>
           } else {
             onlySuite.map(t =>
               if (t.tags(Only)) {
-                t.withBody[TestValue](() =>
+                t.withBody(() =>
                   fail("'Only' tag is not allowed when `isCI=true`")(t.location)
                 )
               } else {

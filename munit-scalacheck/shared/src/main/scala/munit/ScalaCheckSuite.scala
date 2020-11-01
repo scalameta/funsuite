@@ -41,7 +41,7 @@ trait ScalaCheckSuite extends FunSuite {
     new TestTransform(
       "ScalaCheck Prop",
       t => {
-        t.withBodyMap[TestValue](
+        t.withBodyMap(
           _.transformCompat {
             case Success(prop: Prop) => propToTry(prop, t)
             case r                   => r

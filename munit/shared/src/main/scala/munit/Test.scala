@@ -10,35 +10,35 @@ import scala.collection.mutable
  * @param tags the annotated tags for this test case.
  * @param location the file and line number where this test was defined.
  */
-class GenericTest[T](
+class Test(
     val name: String,
-    val body: () => T,
+    val body: () => TestValue,
     val tags: Set[Tag],
     val location: Location
 ) extends Serializable {
-  def this(name: String, body: () => T)(implicit loc: Location) =
+  def this(name: String, body: () => TestValue)(implicit loc: Location) =
     this(name, body, Set.empty, loc)
-  def withName(newName: String): GenericTest[T] =
+  def withName(newName: String): Test =
     copy(name = newName)
-  def withBody[A](newBody: () => A): GenericTest[A] =
+  def withBody(newBody: () => TestValue): Test =
     copy(body = newBody)
-  def withTags(newTags: Set[Tag]): GenericTest[T] =
+  def withTags(newTags: Set[Tag]): Test =
     copy(tags = newTags)
-  def tag(newTag: Tag): GenericTest[T] =
+  def tag(newTag: Tag): Test =
     withTags(tags + newTag)
-  def withLocation(newLocation: Location): GenericTest[T] =
+  def withLocation(newLocation: Location): Test =
     copy(location = newLocation)
 
-  def withBodyMap[A](newBody: T => A): GenericTest[A] =
-    withBody[A](() => newBody(body()))
+  def withBodyMap(newBody: TestValue => TestValue): Test =
+    withBody(() => newBody(body()))
 
-  private[this] def copy[A](
+  private[this] def copy(
       name: String = this.name,
-      body: () => A = this.body,
+      body: () => TestValue = this.body,
       tags: Set[Tag] = this.tags,
       location: Location = this.location
-  ): GenericTest[A] = {
-    new GenericTest(name, body, tags, location)
+  ): Test = {
+    new Test(name, body, tags, location)
   }
   override def toString(): String = s"GenericTest($name, $tags, $location)"
   // NOTE(olafur): tests have reference equality because there's no reasonable

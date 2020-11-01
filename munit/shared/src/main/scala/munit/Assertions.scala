@@ -18,19 +18,6 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
 
   def munitAnsiColors: Boolean = true
 
-  private def munitComparisonHandler(
-      actualObtained: Any,
-      actualExpected: Any
-  ): ComparisonFailExceptionHandler =
-    new ComparisonFailExceptionHandler {
-      override def handle(
-          message: String,
-          unusedObtained: String,
-          unusedExpected: String,
-          loc: Location
-      ): Nothing = failComparison(message, actualObtained, actualExpected)(loc)
-    }
-
   private def munitFilterAnsi(message: String): String =
     if (munitAnsiColors) message
     else AnsiColors.filterAnsi(message)
@@ -67,20 +54,25 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
       Diffs.assertNoDiff(
         obtained,
         expected,
-        munitComparisonHandler(obtained, expected),
+        ComparisonFailExceptionHandler.fromAssertions(this, Clues.empty),
         munitPrint(clue),
         printObtainedAsStripMargin = true
       )
     }
   }
 
+  /**
+   * Asserts that two elements are not equal according to the `Compare[A, B]` type-class.
+   *
+   * By default, uses `==` to compare values.
+   */
   def assertNotEquals[A, B](
       obtained: A,
       expected: B,
       clue: => Any = "values are the same"
-  )(implicit loc: Location, ev: A =:= B): Unit = {
+  )(implicit loc: Location, compare: Compare[A, B]): Unit = {
     StackTraces.dropInside {
-      if (obtained == expected) {
+      if (compare.isEqual(obtained, expected)) {
         failComparison(
           s"${munitPrint(clue)} expected same: $expected was not: $obtained",
           obtained,
@@ -91,51 +83,18 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
   }
 
   /**
-   * Asserts that two elements are equal using `==` equality.
+   * Asserts that two elements are equal according to the `Compare[A, B]` type-class.
    *
-   * The "expected" value (second argument) must have the same type or be a
-   * subtype of the "obtained" value (first argument). For example:
-   * {{{
-   *   assertEquals(Option(1), Some(1)) // OK
-   *   assertEquals(Some(1), Option(1)) // Error: Option[Int] is not a subtype of Some[Int]
-   * }}}
-   *
-   * Use `assertEquals[Any, Any](a, b)` as an escape hatch to compare two
-   * values of different types. For example:
-   * {{{
-   *   val a: Either[List[String], Int] = Right(42)
-   *   val b: Either[String, Int]       = Right(42)
-   *   assertEquals[Any, Any](a, b) // OK
-   *   assertEquals(a, b) // Error: Either[String, Int] is not a subtype of Either[List[String], Int]
-   * }}}
+   * By default, uses `==` to compare values.
    */
   def assertEquals[A, B](
       obtained: A,
       expected: B,
       clue: => Any = "values are not the same"
-  )(implicit loc: Location, ev: B <:< A): Unit = {
+  )(implicit loc: Location, compare: Compare[A, B]): Unit = {
     StackTraces.dropInside {
-      if (obtained != expected) {
-        Diffs.assertNoDiff(
-          munitPrint(obtained),
-          munitPrint(expected),
-          munitComparisonHandler(obtained, expected),
-          munitPrint(clue),
-          printObtainedAsStripMargin = false
-        )
-        // try with `.toString` in case `munitPrint()` produces identical formatting for both values.
-        Diffs.assertNoDiff(
-          obtained.toString(),
-          expected.toString(),
-          munitComparisonHandler(obtained, expected),
-          munitPrint(clue),
-          printObtainedAsStripMargin = false
-        )
-        failComparison(
-          s"values are not equal even if they have the same `toString()`: $obtained",
-          obtained,
-          expected
-        )
+      if (!compare.isEqual(obtained, expected)) {
+        compare.failEqualsComparison(obtained, expected, clue, loc, this)
       }
     }
   }
@@ -188,12 +147,18 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
     }
   }
 
+  /**
+   * Evalutes the given expression and asserts that an exception of type T is thrown.
+   */
   def intercept[T <: Throwable](
       body: => Any
   )(implicit T: ClassTag[T], loc: Location): T = {
     runIntercept(None, body)
   }
 
+  /**
+   * Evalutes the given expression and asserts that an exception of type T with the expected message is thrown.
+   */
   def interceptMessage[T <: Throwable](expectedExceptionMessage: String)(
       body: => Any
   )(implicit T: ClassTag[T], loc: Location): T = {
@@ -241,6 +206,9 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
     }
   }
 
+  /**
+   * Unconditionally fails this test with the given message and exception marked as the cause.
+   */
   def fail(message: String, cause: Throwable)(implicit
       loc: Location
   ): Nothing = {
@@ -252,6 +220,9 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
     )
   }
 
+  /**
+   * Unconditionally fails this test with the given message and optional clues.
+   */
   def fail(
       message: String,
       clues: Clues = new Clues(Nil)
@@ -262,6 +233,13 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
     )
   }
 
+  /**
+   * Unconditionally fails this test due to result of comparing two values.
+   *
+   * The only reason to use this method instead of `fail()` is if you want to
+   * allow comparing the two different values in the the IntelliJ GUI diff
+   * viewer.
+   */
   def failComparison(
       message: String,
       obtained: Any,
@@ -272,10 +250,14 @@ trait Assertions extends MacroCompat.CompileErrorMacro {
       munitFilterAnsi(munitLines.formatLine(loc, message, clues)),
       obtained,
       expected,
-      loc
+      loc,
+      isStackTracesEnabled = false
     )
   }
 
+  /**
+   * Unconditionally fail this test case and cancel all the subsequent tests in this suite.
+   */
   def failSuite(
       message: String,
       clues: Clues = new Clues(Nil)

@@ -17,8 +17,6 @@ abstract class FunSuite
     with SuiteTransforms
     with ValueTransforms { self =>
 
-  final type TestValue = Future[Any]
-
   final val munitTestsBuffer: mutable.ListBuffer[Test] =
     mutable.ListBuffer.empty[Test]
   def munitTests(): Seq[Test] = {
@@ -47,7 +45,7 @@ abstract class FunSuite
   }
 
   def munitTimeout: Duration = new FiniteDuration(30, TimeUnit.SECONDS)
-  private final def waitForCompletion[T](f: Future[T]) =
+  private final def waitForCompletion[T](f: Future[T]): Future[T] =
     PlatformCompat.waitAtMost(f, munitTimeout)
 
 }

@@ -26,7 +26,7 @@ trait TestTransforms { this: FunSuite =>
       }
     } catch {
       case NonFatal(e) =>
-        test.withBody[TestValue](() => Future.failed(e))
+        test.withBody(() => Future.failed(e))
     }
   }
 
@@ -35,7 +35,7 @@ trait TestTransforms { this: FunSuite =>
       "fail",
       { t =>
         if (t.tags(Fail)) {
-          t.withBodyMap[TestValue](
+          t.withBodyMap(
             _.transformCompat {
               case Success(value) =>
                 Failure(

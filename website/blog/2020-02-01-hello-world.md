@@ -70,19 +70,17 @@ Check out the
 If you know how to write normal Scala programs you should feel comfortable
 reasoning about how MUnit works.
 
-Internally, a core MUnit data structure is `GenericTest[T]`, which represents a
-single test case and is roughly defined like this.
+Internally, a core MUnit data structure is `Test`, which represents a single
+test case and is roughly defined like this.
 
 ```scala
-case class GenericTest[T](
+case class Test(
   name: String,
-  body: () => T,
+  body: () => TestValue,
   tags: Set[Tag],
   location: Location
 )
 abstract class Suite {
-  type TestValue
-  type Test = GenericTest[TestValue]
   def munitTests(): Seq[Test]
 }
 ```
@@ -94,19 +92,19 @@ Importantly, MUnit test cases are not discovered via runtime reflection like in
 JUnit and MUnit test cases are not generated via macros like in utest.
 
 MUnit provides a high-level API to write tests in a ScalaTest-inspired
-`FunSuite` syntax where the type parameter for `GenericTest[T]` is defined as
-`Future[Any]`.
+`FunSuite` syntax.
 
 ```scala
-abstract class FunSuite extends Suite {
-  type TestValue = Future[Any]
-}
+abstract class FunSuite extends Suite
+  with Assertions
+  with Fixtures
+  // with ...
 ```
 
-For common usage of MUnit you are not expected to write raw
-`GenericTest[T](...)` expressions but knowing this underlying data model helps
-you implement features like test retries, disabling tests based on dynamic
-conditions, enforce stricter type safety and more.
+For common usage of MUnit you are not expected to write raw `Test[T](...)`
+expressions but knowing this underlying data model helps you implement features
+like test retries, disabling tests based on dynamic conditions, enforce stricter
+type safety and more.
 
 ## Rich filtering capabilities
 

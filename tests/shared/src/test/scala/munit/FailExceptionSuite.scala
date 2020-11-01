@@ -2,8 +2,9 @@ package munit
 
 class FailExceptionSuite extends BaseSuite {
   test("assertion-error") {
-    intercept[AssertionError] {
+    val e = intercept[AssertionError] {
       fail("hello world!")
     }
+    assert(clue(e).isInstanceOf[Serializable])
   }
 }

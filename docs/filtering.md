@@ -38,7 +38,6 @@ test("issue-455") {
 Use `testOnly -- --tests=$REGEXP` to filter an individual test name from the
 command line.
 
-
 ```sh
 # sbt shell
 > testOnly -- --tests=issue-456
@@ -229,6 +228,7 @@ this feature to skip tests based on a dynamic condition.
 
 ```scala mdoc
 import scala.util.Properties
+
 case object Windows extends munit.Tag("Windows")
 class MyWindowsTagSuite extends munit.FunSuite {
   override def munitTests(): Seq[Test] = {

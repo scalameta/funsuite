@@ -40,13 +40,13 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
   @volatile private var settings: Settings = Settings.defaults()
   @volatile private var suiteAborted: Boolean = false
 
-  private val descriptions: mutable.Map[suite.Test, Description] =
-    mutable.Map.empty[suite.Test, Description]
+  private val descriptions: mutable.Map[Test, Description] =
+    mutable.Map.empty[Test, Description]
   private val testNames: mutable.Set[String] =
     mutable.Set.empty[String]
 
-  private lazy val munitTests: mutable.ArrayBuffer[suite.Test] =
-    mutable.ArrayBuffer[suite.Test](suite.munitTests(): _*)
+  private lazy val munitTests: mutable.ArrayBuffer[Test] =
+    mutable.ArrayBuffer[Test](suite.munitTests(): _*)
 
   override def filter(filter: Filter): Unit = {
     val newTests = munitTests.filter { t =>
@@ -59,7 +59,7 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
     this.settings = settings
   }
 
-  def createTestDescription(test: suite.Test): Description = {
+  def createTestDescription(test: Test): Description = {
     descriptions.getOrElseUpdate(
       test, {
         val escapedName = test.name.replace("\n", "\\n")
@@ -121,7 +121,7 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
   private def runAsyncTestsSynchronously(
       notifier: RunNotifier
   ): Future[Unit] = {
-    def loop(it: Iterator[suite.Test]): Future[Unit] =
+    def loop(it: Iterator[Test]): Future[Unit] =
       if (!it.hasNext) {
         Future.successful(())
       } else {
@@ -185,13 +185,13 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
 
   class BeforeEachResult(
       val error: Option[Throwable],
-      val loadedFixtures: List[suite.Fixture[_]]
+      val loadedFixtures: List[Fixture[_]]
   )
   private def runBeforeEach(
-      test: suite.Test
+      test: Test
   ): BeforeEachResult = {
-    val beforeEach = new GenericBeforeEach(test)
-    val fixtures = mutable.ListBuffer.empty[suite.Fixture[_]]
+    val beforeEach = new BeforeEach(test)
+    val fixtures = mutable.ListBuffer.empty[Fixture[_]]
     val error = foreachUnsafe(
       List(() => suite.beforeEach(beforeEach)) ++
         suite.munitFixtures.map(fixture =>
@@ -206,10 +206,10 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
   }
 
   private def runAfterEach(
-      test: suite.Test,
-      fixtures: List[suite.Fixture[_]]
+      test: Test,
+      fixtures: List[Fixture[_]]
   ): Unit = {
-    val afterEach = new GenericAfterEach(test)
+    val afterEach = new AfterEach(test)
     val error = foreachUnsafe(
       fixtures.map(fixture => () => fixture.afterEach(afterEach)) ++
         List(() => suite.afterEach(afterEach))
@@ -219,7 +219,7 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
 
   private def runTest(
       notifier: RunNotifier,
-      test: suite.Test
+      test: Test
   ): Future[Boolean] = {
     val description = createTestDescription(test)
 
@@ -245,9 +245,15 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
       case NonFatal(ex) =>
         trimStackTrace(ex)
         val cause = ex match {
-          case e: ExecutionException
-              if "Boxed Exception" == e.getMessage() &&
-                e.getCause() != null =>
+          case e: ExecutionException if e.getCause() != null && {
+                e.getMessage() match {
+                  // NOTE(olafur): these exceptions appear when we await on
+                  // futures. We unwrap these exception in order to provide more
+                  // helpful error messages.
+                  case "Boxed Exception" | "Boxed Error" => true
+                  case _                                 => false
+                }
+              } =>
             e.getCause()
           case e => e
         }
@@ -280,7 +286,7 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
   private def runTestBody(
       notifier: RunNotifier,
       description: Description,
-      test: suite.Test
+      test: Test
   ): Future[Unit] = {
     val result: Future[Any] = StackTraces.dropOutside {
       val beforeEachResult = runBeforeEach(test)
@@ -348,7 +354,7 @@ class MUnitRunner(val cls: Class[_ <: Suite], newInstance: () => Suite)
       name: String,
       ex: Throwable
   ): Unit = {
-    val test = new suite.Test(name, () => ???, Set.empty, Location.empty)
+    val test = new Test(name, () => ???, Set.empty, Location.empty)
     val description = createTestDescription(test)
     notifier.fireTestStarted(description)
     trimStackTrace(ex)
