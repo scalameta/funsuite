@@ -8,6 +8,9 @@
       "assertions": {
         "title": "Writing assertions"
       },
+      "file-layout": {
+        "title": "File Layout"
+      },
       "filtering": {
         "title": "Filtering tests"
       },

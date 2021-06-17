@@ -3,6 +3,7 @@ package munit.internal
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.scalajs.js.annotation.JSImport.Namespace
+import scala.scalajs.js.typedarray.Uint8Array
 
 /**
  * Facade for the native nodejs process API
@@ -39,7 +40,11 @@ object JSFs extends js.Any {
   def readFileSync(path: String, encoding: String): String = js.native
 
   /** Writes file contents using blocking apis */
-  def writeFileSync(path: String, buffer: js.Array[Int]): Unit = js.native
+  def writeFileSync(
+      path: String,
+      buffer: Uint8Array,
+      options: js.UndefOr[js.Object] = js.undefined
+  ): Unit = js.native
 
   /** Returns an array of filenames excluding '.' and '..'. */
   def readdirSync(path: String): js.Array[String] = js.native
@@ -51,7 +56,16 @@ object JSFs extends js.Any {
   def existsSync(path: String): Boolean = js.native
 
   /** Synchronously creates a directory. */
-  def mkdirSync(path: String): Unit = js.native
+  def mkdirSync(
+      path: String,
+      options: js.UndefOr[js.Object] = js.undefined
+  ): Unit = js.native
+
+  /** Synchronously creates a temporary directory */
+  def mkdtempSync(prefix: String): String = js.native
+
+  /** Synchronously removes a file or symbolic link */
+  def unlinkSync(path: String): Unit = js.native
 }
 
 /**
@@ -85,6 +99,18 @@ object JSPath extends js.Any {
   def root: String = js.native
   def relative(from: String, to: String): String = js.native
   def join(first: String, more: String*): String = js.native
+}
+
+/** Facade for nodejs class fs.OS.
+ *
+ * @see https://nodejs.org/api/os.html#os_os
+ */
+@js.native
+@JSImport("os", Namespace)
+object JSOS extends js.Any {
+
+  /** Returns the operating system's default directory for temporary files as a string. */
+  def tmpdir(): String = js.native
 }
 
 object JSIO {

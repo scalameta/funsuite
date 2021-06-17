@@ -4,6 +4,7 @@
       "getting-started",
       "tests",
       "assertions",
+      "file-layout",
       "fixtures",
       "filtering",
       "scalatest",

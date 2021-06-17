@@ -21,6 +21,7 @@ abstract class FunSuite
 
   final val munitTestsBuffer: mutable.ListBuffer[Test] =
     mutable.ListBuffer.empty[Test]
+
   def munitTests(): Seq[Test] = {
     munitSuiteTransform(munitTestsBuffer.toList)
   }
@@ -28,6 +29,7 @@ abstract class FunSuite
   def test(name: String)(body: => Any)(implicit loc: Location): Unit = {
     test(new TestOptions(name))(body)
   }
+
   def test(options: TestOptions)(body: => Any)(implicit loc: Location): Unit = {
     munitTestsBuffer += munitTestTransform(
       new Test(
