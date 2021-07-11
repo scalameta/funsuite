@@ -3,7 +3,7 @@ package munit
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-trait SuiteTransforms { this: FunSuite =>
+trait SuiteTransforms { this: FunSuiteBase =>
 
   final class SuiteTransform(val name: String, fn: List[Test] => List[Test])
       extends Function1[List[Test], List[Test]] {

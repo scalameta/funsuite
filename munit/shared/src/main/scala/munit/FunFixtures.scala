@@ -6,7 +6,7 @@ import scala.concurrent.Future
 import scala.util.Success
 import scala.util.Failure
 
-trait FunFixtures { self: FunSuite =>
+trait FunFixtures { self: FunSuiteBase =>
 
   class FunFixture[T] private (
       val setup: TestOptions => Future[T],

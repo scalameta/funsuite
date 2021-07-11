@@ -6,7 +6,7 @@ import scala.util.Failure
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-trait TestTransforms { this: FunSuite =>
+trait TestTransforms { this: FunSuiteBase =>
 
   final class TestTransform(val name: String, fn: Test => Test)
       extends Function1[Test, Test] {

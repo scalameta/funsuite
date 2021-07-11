@@ -5,7 +5,7 @@ import munit.internal.FutureCompat._
 import scala.util.Try
 import munit.internal.console.StackTraces
 
-trait ValueTransforms { this: FunSuite =>
+trait ValueTransforms { this: FunSuiteBase =>
 
   final class ValueTransform(
       val name: String,
