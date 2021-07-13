@@ -9,4 +9,4 @@ addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.4.0")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.6.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.9.2")
 
-libraryDependencies += "com.google.cloud" % "google-cloud-storage" % "1.115.0"
+libraryDependencies += "com.google.cloud" % "google-cloud-storage" % "1.118.0"
